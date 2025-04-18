@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InstAmin - Réseau Social</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #101010;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: #181818;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    .container {
+      display: flex;
+      flex: 1;
+    }
+    .sidebar {
+      background: #1c1c1c;
+      width: 200px;
+      padding: 20px;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);
+    }
+    .sidebar h2 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+    .main {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .chat {
+      background: #262626;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .message-input {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .message-input input {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+    }
+    .message-input button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 6px;
+      background: #4e7fff;
+      color: white;
+      cursor: pointer;
+    }
+    .post-box, .post {
+      background: #1e1e1e;
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 10px;
+    }
+    textarea {
+      width: 100%;
+      border-radius: 8px;
+      padding: 10px;
+      resize: none;
+    }
+    footer {
+      text-align: center;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: #888;
+      background: #181818;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    ado.net 📸 - Le réseau ado
+  </header>
+
+  <div class="container">
+    <div class="sidebar">
+      <h2>Navigation</h2>
+      <p><strong>👤 Utilisateur :</strong> <span id="currentUser">Invité</span></p>
+    </div>
+
+    <div class="main">
+      <h2>Publications</h2>
+      <div class="post-box">
+        <textarea id="newPost" placeholder="Partage une photo, une idée, un moment..."></textarea>
+        <button onclick="publierPost()">Publier</button>
+      </div>
+      <div id="feed"></div>
+
+      <h2>Messagerie</h2>
+      <div class="chat" id="chat"></div>
+      <div class="message-input">
+        <input type="text" id="message" placeholder="Écris un message...">
+        <button onclick="envoyerMessage()">Envoyer</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2025 InstAmin - Créé par Amin
+  </footer>
+
+  <script>
+    let utilisateurActuel = prompt("Quel est ton pseudo ?") || "Invité";
+    document.getElementById("currentUser").innerText = utilisateurActuel;
+
+    const publications = [];
+    const messages = [];
+
+    function publierPost() {
+      const contenu = document.getElementById("newPost").value.trim();
+      if (contenu) {
+        publications.unshift({ auteur: utilisateurActuel, texte: contenu });
+        document.getElementById("newPost").value = '';
+        afficherPosts();
+      }
+    }
+
+    function afficherPosts() {
+      const feed = document.getElementById("feed");
+      feed.innerHTML = publications.map(p => `
+        <div class="post">
+          <strong>@${p.auteur}</strong><br>
+          <p>${p.texte}</p>
+        </div>
+      `).join('');
+    }
+
+    function envoyerMessage() {
+      const msg = document.getElementById("message").value.trim();
+      if (msg) {
+        messages.push({ auteur: utilisateurActuel, texte: msg });
+        document.getElementById("message").value = '';
+        afficherMessages();
+      }
+    }
+
+    function afficherMessages() {
+      const chat = document.getElementById("chat");
+      chat.innerHTML = messages.map(m => `<p><strong>@${m.auteur}</strong> : ${m.texte}</p>`).join('');
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
+</body>
+</html>
+<!-- ado.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Espace ADO</title>
+</head>
+<body>
+  <h1>Bienvenue dans l'espace ADO ! 👋</h1>
+  <p>Cette page est dédiée aux ados pour échanger, partager et s’amuser !</p>
+</body>
+</html>
+RewriteEngine On
+RewriteRule ^ado$ /ado.html [L]
