@@ -3,177 +3,175 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InstAmin - Réseau Social</title>
+  <title>InstAmin MultiUser</title>
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #101010;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
     }
     header {
-      background: #181818;
-      padding: 15px;
+      background-color: #0077cc;
+      color: white;
+      padding: 1rem;
       text-align: center;
       font-size: 1.5rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-    .container {
-      display: flex;
-      flex: 1;
-    }
-    .sidebar {
-      background: #1c1c1c;
-      width: 200px;
-      padding: 20px;
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);
-    }
-    .sidebar h2 {
-      font-size: 1.2rem;
-      margin-bottom: 10px;
     }
     .main {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
+      display: grid;
+      grid-template-columns: 250px 1fr 300px;
+      gap: 1rem;
+      padding: 1rem;
     }
-    .chat {
-      background: #262626;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 8px;
-      max-height: 300px;
-      overflow-y: auto;
+    .sidebar, .feed, .profile {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-    .message-input {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
+    .message-box, .post-box {
+      margin-bottom: 1rem;
     }
-    .message-input input {
-      flex: 1;
-      padding: 8px;
-      border-radius: 6px;
-      border: none;
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-top: 5px;
     }
-    .message-input button {
-      padding: 8px 15px;
-      border: none;
-      border-radius: 6px;
-      background: #4e7fff;
+    button {
+      margin-top: 5px;
+      padding: 0.5rem 1rem;
+      background-color: #0077cc;
       color: white;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
     }
-    .post-box, .post {
-      background: #1e1e1e;
-      padding: 15px;
-      margin-top: 15px;
-      border-radius: 10px;
+    .post, .message {
+      background: #f0f0f0;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: 5px;
     }
-    textarea {
-      width: 100%;
-      border-radius: 8px;
-      padding: 10px;
-      resize: none;
+    .post strong, .message strong {
+      color: #0077cc;
     }
-    footer {
-      text-align: center;
-      padding: 10px;
-      font-size: 0.9rem;
-      color: #888;
-      background: #181818;
+    .users-list li {
+      list-style: none;
+      padding: 4px;
+      border-bottom: 1px solid #eee;
     }
   </style>
 </head>
 <body>
   <header>
-    ado.net 📸 - Le réseau ado
+    InstAmin 📸 - MultiUser Réseau Social
   </header>
 
-  <div class="container">
+  <div class="main">
+    <!-- Sidebar Users -->
     <div class="sidebar">
-      <h2>Navigation</h2>
-      <p><strong>👤 Utilisateur :</strong> <span id="currentUser">Invité</span></p>
+      <h3>Utilisateurs connectés</h3>
+      <ul class="users-list" id="usersList"></ul>
     </div>
 
-    <div class="main">
+    <!-- Feed Area -->
+    <div class="feed">
       <h2>Publications</h2>
       <div class="post-box">
-        <textarea id="newPost" placeholder="Partage une photo, une idée, un moment..."></textarea>
+        <textarea id="postContent" placeholder="Qu'as-tu à partager ?"></textarea>
         <button onclick="publierPost()">Publier</button>
       </div>
-      <div id="feed"></div>
+      <div id="postFeed"></div>
 
       <h2>Messagerie</h2>
-      <div class="chat" id="chat"></div>
-      <div class="message-input">
-        <input type="text" id="message" placeholder="Écris un message...">
+      <div class="message-box">
+        <input type="text" id="messageContent" placeholder="Message à tout le monde...">
         <button onclick="envoyerMessage()">Envoyer</button>
       </div>
+      <div id="chatBox"></div>
+    </div>
+
+    <!-- Profile Info -->
+    <div class="profile">
+      <h2>Profil</h2>
+      <p><strong>Pseudo :</strong> <span id="userName">...</span></p>
+      <p><strong>Bio :</strong></p>
+      <textarea id="bioInput" placeholder="Décris-toi..." rows="4"></textarea>
+      <button onclick="updateBio()">Mettre à jour</button>
+      <p id="bioOutput"></p>
     </div>
   </div>
 
-  <footer>
-    &copy; 2025 InstAmin - Créé par Amin
-  </footer>
-
   <script>
-    let utilisateurActuel = prompt("Quel est ton pseudo ?") || "Invité";
-    document.getElementById("currentUser").innerText = utilisateurActuel;
+    let pseudo = prompt("Ton pseudo ?") || "Invité";
+    document.getElementById("userName").innerText = pseudo;
 
-    const publications = [];
+    let bioText = "";
+    const posts = [];
     const messages = [];
+    const users = new Set();
+
+    users.add(pseudo);
+
+    function updateUsers() {
+      const list = document.getElementById("usersList");
+      list.innerHTML = "";
+      users.forEach(u => {
+        const li = document.createElement("li");
+        li.textContent = u;
+        list.appendChild(li);
+      });
+    }
 
     function publierPost() {
-      const contenu = document.getElementById("newPost").value.trim();
-      if (contenu) {
-        publications.unshift({ auteur: utilisateurActuel, texte: contenu });
-        document.getElementById("newPost").value = '';
+      const text = document.getElementById("postContent").value.trim();
+      if (text) {
+        posts.unshift({ auteur: pseudo, texte: text });
+        document.getElementById("postContent").value = "";
         afficherPosts();
       }
     }
 
     function afficherPosts() {
-      const feed = document.getElementById("feed");
-      feed.innerHTML = publications.map(p => `
+      const feed = document.getElementById("postFeed");
+      feed.innerHTML = posts.map(p => `
         <div class="post">
           <strong>@${p.auteur}</strong><br>
-          <p>${p.texte}</p>
+          ${p.texte}
         </div>
       `).join('');
     }
 
     function envoyerMessage() {
-      const msg = document.getElementById("message").value.trim();
-      if (msg) {
-        messages.push({ auteur: utilisateurActuel, texte: msg });
-        document.getElementById("message").value = '';
+      const text = document.getElementById("messageContent").value.trim();
+      if (text) {
+        messages.push({ auteur: pseudo, texte: text });
+        document.getElementById("messageContent").value = "";
         afficherMessages();
       }
     }
 
     function afficherMessages() {
-      const chat = document.getElementById("chat");
-      chat.innerHTML = messages.map(m => `<p><strong>@${m.auteur}</strong> : ${m.texte}</p>`).join('');
+      const chat = document.getElementById("chatBox");
+      chat.innerHTML = messages.map(m => `
+        <div class="message">
+          <strong>@${m.auteur}</strong> : ${m.texte}
+        </div>
+      `).join('');
       chat.scrollTop = chat.scrollHeight;
     }
+
+    function updateBio() {
+      bioText = document.getElementById("bioInput").value;
+      document.getElementById("bioOutput").innerText = bioText;
+    }
+
+    updateUsers();
   </script>
 </body>
 </html>
-<!-- ado.html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Espace ADO</title>
-</head>
-<body>
-  <h1>Bienvenue dans l'espace ADO ! 👋</h1>
-  <p>Cette page est dédiée aux ados pour échanger, partager et s’amuser !</p>
-</body>
-</html>
-RewriteEngine On
-RewriteRule ^ado$ /ado.html [L]
+
